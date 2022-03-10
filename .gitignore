@@ -1,0 +1,7 @@
+*.dump
+*.xz
+*.zip
+consul
+MnesiaCore*
+
+rabbitmq_server-*/
