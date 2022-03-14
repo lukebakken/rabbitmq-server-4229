@@ -8,7 +8,6 @@ readonly dir="$(cd -- "$(dirname "$0")" >/dev/null 2>&1; pwd -P)"
 readonly consul_ver='1.11.4'
 readonly consul_bin="$dir/consul"
 
-readonly rmq_host_name="$(hostname)"
 readonly rmq_ver='3.9.13'
 readonly rmq_dir="$dir/rabbitmq_server-$rmq_ver"
 
@@ -35,7 +34,9 @@ declare -i IDX=0
 
 for IDX in 0 1 2
 do
-    rmq_node_name="rabbit$IDX@$rmq_host_name"
+    rmq_host_name="rabbit$IDX-host"
+    ping -c 1 "$rmq_host_name"
+    rmq_node_name="rabbit@$rmq_host_name"
     declare -i rmq_node_port="$((5672 + $IDX))"
     rmq_conf="$dir/rabbit$IDX.conf"
 
@@ -48,13 +49,15 @@ sleep 1
 
 for IDX in 0 1 2
 do
-    rmq_node_name="rabbit$IDX@$rmq_host_name"
+    rmq_host_name="rabbit$IDX-host"
+    rmq_node_name="rabbit@$rmq_host_name"
     "$rabbitmqctl_cmd" -n "$rmq_node_name" await_startup
 done
 
 for IDX in 1 2
 do
-    rmq_node_name="rabbit$IDX@$rmq_host_name"
+    rmq_host_name="rabbit$IDX-host"
+    rmq_node_name="rabbit@$rmq_host_name"
     "$rabbitmqctl_cmd" -n "$rmq_node_name" stop_app
     "$rabbitmqctl_cmd" -n "$rmq_node_name" join_cluster "rabbit0@$rmq_host_name"
     "$rabbitmqctl_cmd" -n "$rmq_node_name" start_app
